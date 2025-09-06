@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XNK Hoàng Thịnh Logictics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-color: #e6f7e6; /* Default light green */
+            --text-color: #113311; /* Default dark green-black mix */
+            --primary-color: #2e8b57; /* Default sea green */
+            --icon-color: #2e8b57; /* Default icon color */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 1rem;
+        }
+        .carousel-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        .carousel {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            min-height: 400px;
+        }
+        .carousel-item {
+            min-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fff;
+            position: relative;
+        }
+        .carousel-item img, .carousel-item embed {
+            width: 100%;
+            height: auto;
+            max-height: 500px;
+            object-fit: contain;
+        }
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+        .carousel-controls button {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 50%;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            margin: 0 10px;
+        }
+        .carousel-controls button:hover {
+            opacity: 1;
+        }
+        .banner-container, .file-upload-container, .image-gallery-container, .custom-text-container, .color-settings-container, .icon-settings-container, .page-content-wrapper {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 1.5rem;
+        }
+        .image-gallery-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 2rem;
+        }
+        .image-gallery-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .content-container {
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            height: auto;
+            overflow: hidden;
+        }
+        .content-container img, .content-container embed {
+            width: 100%;
+            height: auto;
+        }
+        .icon-bar {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            width: 80px; /* Adjust width for vertical layout */
+            background-color: #fff;
+            display: flex;
+            flex-direction: column; /* Change to vertical layout */
+            justify-content: space-evenly;
+            align-items: center;
+            padding: 1rem 0;
+            box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1); /* Shadow for vertical bar */
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            z-index: 20;
+        }
+        .icon-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            text-align: center;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .icon-button:hover {
+            transform: scale(1.1);
+        }
+        .icon-button i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        .icon-button span {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            color: #555;
+        }
+        .action-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            display: none;
+        }
+        .action-modal {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            max-width: 90%;
+            width: 400px;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        /* Floating Icons Styles */
+        .floating-icons-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .floating-icon {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0;
+            animation: float-animation linear infinite;
+            color: var(--icon-color);
+        }
+        @keyframes float-animation {
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+            5% { opacity: 1; }
+            100% { transform: translate(var(--x), var(--y)) scale(1.2); opacity: 0; }
+        }
+        .hidden {
+            display: none;
+        }
+        .page-nav-icons {
+            display: flex;
+            justify-content: flex-start; /* Changed from center */
+            gap: 2rem;
+            margin-top: 1.5rem;
+            padding: 1rem 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        .page-nav-icons .nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: var(--primary-color);
+            transition: transform 0.2s, color 0.2s;
+        }
+        .page-nav-icons .nav-icon:hover {
+            transform: scale(1.1);
+            color: var(--text-color);
+        }
+        .page-nav-icons .nav-icon i {
+            font-size: 2rem;
+        }
+        .page-nav-icons .nav-icon span {
+            margin-top: 0.5rem;
+            font-weight: 500;
+        }
+        .admin-controls {
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+<!-- Floating Icons Container -->
+<div id="floating-icons" class="floating-icons-container"></div>
+
+<!-- Login Button -->
+<div id="auth-status" class="fixed top-4 right-4 z-50">
+    <button id="login-btn" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Đăng nhập</button>
+</div>
+
+<!-- Login Modal -->
+<div id="login-modal" class="action-overlay">
+    <div class="action-modal">
+        <button class="close-btn" id="close-login-modal">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-left">Đăng nhập Quản trị viên</h3>
+        <input type="email" id="email-input" class="w-full p-3 border rounded-md mb-4" placeholder="Email quản trị">
+        <input type="password" id="password-input" class="w-full p-3 border rounded-md mb-4" placeholder="Mật khẩu">
+        <button id="sign-in-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-full hover:bg-blue-600 transition-colors">Đăng nhập</button>
+        <p id="auth-error-message" class="text-red-500 mt-2"></p>
+    </div>
+</div>
+
+<!-- Top Banner Section -->
+<div class="banner-container max-w-full m-auto mt-0 rounded-none shadow-none">
+    <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Banner</h2>
+    <div id="banner-content" class="w-full min-h-[200px] flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden">
+        <span class="text-gray-500">Banner sẽ hiển thị ở đây</span>
+    </div>
+    <div class="admin-controls">
+        <label for="banner-upload-input" class="mt-4 inline-flex items-center justify-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+            <i class="fas fa-upload mr-2"></i>Tải lên Banner
+            <input type="file" id="banner-upload-input" class="hidden" accept="image/jpeg, image/png, .pdf">
+        </label>
+    </div>
+</div>
+
+<!-- Page Navigation Icons -->
+<div class="page-nav-icons container">
+    <div class="nav-icon" data-page="page1">
+        <i class="fas fa-home"></i>
+        <span>Trang chủ</span>
+    </div>
+    <div class="nav-icon" data-page="page2">
+        <i class="fas fa-box"></i>
+        <span>Hành trình đơn hàng</span>
+    </div>
+    <div class="nav-icon" data-page="page3">
+        <i class="fas fa-users"></i>
+        <span>Về chúng tôi</span>
+    </div>
+</div>
+
+<!-- Main Content Container (Page 1) -->
+<div id="page1-content" class="page-content-wrapper">
+    <div class="container mt-8 mb-24 p-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-4xl font-bold text-left mb-6 text-indigo-700">Giới thiệu sản phẩm của bạn</h1>
+        <p class="text-left text-gray-600 mb-8">Bạn có thể tải lên hình ảnh và tệp PDF để giới thiệu chi tiết về sản phẩm hoặc dịch vụ.</p>
+    
+        <!-- Carousel Section -->
+        <div class="carousel-container mb-8">
+            <div class="carousel" id="carousel">
+                <!-- Items will be loaded from Firestore -->
+            </div>
+            <div class="carousel-controls">
+                <button id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+                <button id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    
+        <!-- File Upload Section -->
+        <div class="file-upload-container admin-controls">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Thêm hình ảnh & PDF</h2>
+            <p class="text-left text-gray-600 mb-4">Bạn có thể kéo và thả các tệp vào đây hoặc nhấp để chọn.</p>
+            <label for="file-input" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all duration-200">
+                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                <span class="text-gray-600">Kéo và thả tệp vào đây hoặc nhấp để tải lên</span>
+                <input type="file" id="file-input" multiple class="hidden" accept="image/*,.pdf">
+            </label>
+            <div id="file-list" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+        
+        <!-- Image Gallery Section -->
+        <div class="image-gallery-container">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Bộ sưu tập nội dung cố định</h2>
+            <p class="text-left text-gray-600 mb-4">Bạn có thể tùy chỉnh hiển thị các hình ảnh và PDF tại đây.</p>
+            
+            <div class="image-gallery-item">
+                <h3 class="font-bold text-gray-700">Dịch vụ Vận tải</h3>
+                <div id="content1" class="content-container"></div>
+                <div class="admin-controls">
+                    <label for="file-upload-1" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i>Tải lên
+                        <input type="file" id="file-upload-1" class="hidden" accept="image/*,.pdf">
+                    </label>
+                    <button class="toggle-btn bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors" data-target="content1">Ẩn</button>
+                </div>
+            </div>
+    
+            <div class="image-gallery-item">
+                <h3 class="font-bold text-gray-700">Thủ tục Hải quan</h3>
+                <div id="content2" class="content-container"></div>
+                <div class="admin-controls">
+                    <label for="file-upload-2" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i>Tải lên
+                        <input type="file" id="file-upload-2" class="hidden" accept="image/*,.pdf">
+                    </label>
+                    <button class="toggle-btn bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors" data-target="content2">Ẩn</button>
+                </div>
+            </div>
+    
+            <div class="image-gallery-item">
+                <h3 class="font-bold text-gray-700">Dịch vụ Kho bãi</h3>
+                <div id="content3" class="content-container"></div>
+                <div class="admin-controls">
+                    <label for="file-upload-3" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i>Tải lên
+                        <input type="file" id="file-upload-3" class="hidden" accept="image/*,.pdf">
+                    </label>
+                    <button class="toggle-btn bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors" data-target="content3">Ẩn</button>
+                </div>
+            </div>
+    
+            <div class="image-gallery-item">
+                <h3 class="font-bold text-gray-700">Xuất nhập khẩu</h3>
+                <div id="content4" class="content-container"></div>
+                <div class="admin-controls">
+                    <label for="file-upload-4" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                        <i class="fas fa-upload mr-2"></i>Tải lên
+                        <input type="file" id="file-upload-4" class="hidden" accept="image/*,.pdf">
+                    </label>
+                    <button class="toggle-btn bg-indigo-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors" data-target="content4">Ẩn</button>
+                </div>
+            </div>
+        </div>
+    
+        <!-- Gemini AI Section -->
+        <div class="mt-8 p-6 bg-white rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Hỏi & Đáp với AI ✨</h2>
+            <p class="text-left text-gray-600 mb-4">Nhập câu hỏi của bạn về logistics để nhận được câu trả lời từ chuyên gia AI.</p>
+            <textarea id="ai-input" class="w-full h-32 p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Ví dụ: Thủ tục nhập khẩu hàng từ Trung Quốc là gì?"></textarea>
+            <div class="flex flex-col sm:flex-row justify-center mt-4 gap-3">
+                <button id="ask-btn" class="flex-1 bg-indigo-600 text-white font-bold py-3 px-6 rounded-full hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-paper-plane mr-2"></i>Gửi câu hỏi ✨
+                </button>
+                <button id="subject-btn" class="flex-1 bg-teal-500 text-white font-bold py-3 px-6 rounded-full hover:bg-teal-600 transition-colors">
+                    <i class="fas fa-envelope-open-text mr-2"></i>Tạo tiêu đề email ✨
+                </button>
+            </div>
+            <div id="ai-response" class="mt-6 p-4 border rounded-md bg-gray-50 text-gray-700 whitespace-pre-wrap">
+                <div class="text-left text-gray-400">Câu trả lời sẽ hiển thị ở đây.</div>
+            </div>
+        </div>
+
+        <!-- Admin Only Section -->
+        <div class="mt-8 p-6 bg-white rounded-xl shadow-lg admin-controls">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Công cụ Quản trị viên</h2>
+            <p class="text-left text-gray-600 mb-4">Dưới đây là công cụ giúp bạn quản lý dữ liệu khách hàng.</p>
+            <button id="get-customer-data-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-full hover:bg-blue-600 transition-colors">
+                <i class="fas fa-download mr-2"></i>Lấy danh sách khách hàng
+            </button>
+            <div id="customer-data-display" class="mt-4 p-4 border rounded-md bg-gray-50">
+                <p class="text-sm text-left text-gray-500">Danh sách sẽ hiển thị ở đây.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page 2 Content (Hidden by default) -->
+<div id="page2-content" class="hidden page-content-wrapper">
+    <div class="container mt-8 p-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-left mb-4 text-gray-800">Hành trình đơn hàng</h1>
+        <p class="text-left text-gray-600 mb-8">Vui lòng nhập mã vận đơn của bạn vào ô dưới đây để theo dõi hành trình của đơn hàng.</p>
+        
+        <div id="tracking-controls">
+            <div class="flex flex-col md:flex-row items-center gap-4">
+                <input type="text" id="tracking-input" placeholder="Nhập mã vận đơn..." class="flex-1 w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                <button id="track-btn" class="w-full md:w-auto bg-blue-500 text-white font-bold py-3 px-6 rounded-full hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-search mr-2"></i>Tìm kiếm
+                </button>
+            </div>
+            
+            <div id="tracking-result" class="mt-6 p-4 border rounded-md bg-gray-50 text-gray-700 whitespace-pre-wrap">
+                <p class="text-left text-gray-400">Kết quả theo dõi sẽ hiển thị ở đây.</p>
+            </div>
+        </div>
+
+        <!-- Tracking Journey UI -->
+        <div id="tracking-journey" class="mt-8 flex flex-col gap-4">
+            <div id="step-1" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Đã nhận hàng tại kho TQ.</span>
+                </div>
+                <span id="date-1" class="text-sm italic"></span>
+            </div>
+            <div id="step-2" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Đã xếp xe.</span>
+                </div>
+                <span id="date-2" class="text-sm italic"></span>
+            </div>
+            <div id="step-3" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Đang thông quan.</span>
+                </div>
+                <span id="date-3" class="text-sm italic"></span>
+            </div>
+            <div id="step-4" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Đã về kho Hà Nội.</span>
+                </div>
+                <span id="date-4" class="text-sm italic"></span>
+            </div>
+            <div id="step-5" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>VC Hà Nội - Sài Gòn.</span>
+                </div>
+                <span id="date-5" class="text-sm italic"></span>
+            </div>
+            <div id="step-6" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Về kho Sài gòn.</span>
+                </div>
+                <span id="date-6" class="text-sm italic"></span>
+            </div>
+            <div id="step-7" class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-gray-500">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-circle-notch text-xl"></i>
+                    <span>Đang giao hàng.</span>
+                </div>
+                <span id="date-7" class="text-sm italic"></span>
+            </div>
+        </div>
+
+        <!-- New section for file upload on page 2 -->
+        <div class="mt-8">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Thêm tệp đính kèm</h2>
+            <div id="tracking-file-content" class="w-full min-h-[200px] flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden mb-4">
+                <span class="text-gray-500">Tệp sẽ hiển thị ở đây</span>
+            </div>
+            <div class="admin-controls">
+                <label for="tracking-file-upload" class="inline-flex items-center justify-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                    <i class="fas fa-upload mr-2"></i>Tải lên tệp
+                    <input type="file" id="tracking-file-upload" class="hidden" accept="image/jpeg, image/png, .pdf">
+                </label>
+            </div>
+        </div>
+
+        <button id="back-btn-2" class="mt-8 bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors">
+            <i class="fas fa-chevron-left mr-2"></i>Quay lại trang chủ
+        </button>
+    </div>
+</div>
+
+<!-- Page 3 Content (Hidden by default) -->
+<div id="page3-content" class="hidden page-content-wrapper">
+    <div class="container mt-8 p-6 bg-white rounded-xl shadow-lg">
+        <h1 class="text-3xl font-bold text-left mb-4 text-gray-800">Trang Về chúng tôi</h1>
+        <p class="text-left text-gray-600 mb-8">Hãy sử dụng trang này để kể câu chuyện về công ty bạn, đội ngũ nhân viên, tầm nhìn và sứ mệnh. Đây là cơ hội để xây dựng lòng tin với khách hàng.</p>
+        
+        <!-- Upload section 1 for Page 3 -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Nội dung 1</h2>
+            <div id="content-page3-1" class="w-full min-h-[300px] flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden">
+                <span class="text-gray-500 text-center p-4">Nội dung sẽ hiển thị ở đây</span>
+            </div>
+            <div class="admin-controls">
+                <label for="file-upload-page3-1" class="mt-4 inline-flex items-center justify-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                    <i class="fas fa-upload mr-2"></i>Tải lên
+                    <input type="file" id="file-upload-page3-1" class="hidden" accept="image/jpeg, image/png, .pdf">
+                </label>
+            </div>
+        </div>
+
+        <!-- Upload section 2 for Page 3 -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Nội dung 2</h2>
+            <div id="content-page3-2" class="w-full min-h-[300px] flex items-center justify-center bg-gray-200 rounded-lg overflow-hidden">
+                <span class="text-gray-500 text-center p-4">Nội dung sẽ hiển thị ở đây</span>
+            </div>
+            <div class="admin-controls">
+                <label for="file-upload-page3-2" class="mt-4 inline-flex items-center justify-center bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors cursor-pointer">
+                    <i class="fas fa-upload mr-2"></i>Tải lên
+                    <input type="file" id="file-upload-page3-2" class="hidden" accept="image/jpeg, image/png, .pdf">
+                </label>
+            </div>
+        </div>
+
+        <!-- Custom Text Section for Page 3 -->
+        <div class="custom-text-container container mt-4 p-6 bg-white rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Văn bản tùy chỉnh</h2>
+            <div id="custom-text-area-page3" contenteditable="true" class="w-full min-h-[100px] p-3 border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-left">
+                <p class="text-gray-600">Bạn có thể nhấp vào đây và chỉnh sửa văn bản này tùy ý. Ví dụ: Viết một đoạn giới thiệu chi tiết về công ty, tầm nhìn hoặc sứ mệnh của bạn.</p>
+            </div>
+        </div>
+
+        <button id="back-btn-3" class="mt-8 bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-full hover:bg-gray-300 transition-colors">
+            <i class="fas fa-chevron-left mr-2"></i>Quay lại trang chủ
+        </button>
+    </div>
+</div>
+
+<!-- Icon Bar Section -->
+<div class="icon-bar">
+    <a href="tel:0912345678" class="icon-button" id="call-main">
+        <i class="fas fa-phone"></i>
+        <span>Gọi điện</span>
+    </a>
+    <a href="https://zalo.me/sdt-zalo-oa-cua-ban" target="_blank" class="icon-button">
+        <i class="fas fa-comment-dots"></i>
+        <span>Chat Zalo</span>
+    </a>
+    <a href="#" class="icon-button" id="nav-tracking-icon">
+        <i class="fas fa-box"></i>
+        <span>Hành trình đơn hàng</span>
+    </a>
+    <a href="tel:0987654321" class="icon-button" id="call-coop">
+        <i class="fas fa-handshake"></i>
+        <span>Hợp tác</span>
+    </a>
+</div>
+
+<!-- Modal for phone numbers -->
+<div id="phoneModal" class="action-overlay">
+    <div class="action-modal">
+        <button class="close-btn" onclick="document.getElementById('phoneModal').style.display='none'">&times;</button>
+        <h3 class="text-xl font-bold mb-4 text-left">Gọi điện</h3>
+        <p class="mb-4 text-left">Bạn muốn gọi số nào?</p>
+        <div class="flex justify-center gap-4">
+            <a href="tel:0912345678" class="bg-blue-500 text-white py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Gọi số chính</a>
+            <a href="tel:0987654321" class="bg-indigo-500 text-white py-2 px-4 rounded-full hover:bg-indigo-600 transition-colors">Gọi hợp tác</a>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Icons Settings Section -->
+<div class="icon-settings-container container mt-4 mb-24 p-6 bg-white rounded-xl shadow-lg">
+    <h2 class="text-2xl font-semibold mb-4 text-left text-gray-800">Tùy chỉnh hiệu ứng nền</h2>
+    <p class="text-left text-gray-600 mb-4">Điều chỉnh màu sắc, số lượng và chọn bộ biểu tượng cho hiệu ứng bay trên nền.</p>
+    
+    <div class="mb-4 admin-controls">
+        <label for="icon-set-select" class="block font-semibold mb-2">Chọn bộ biểu tượng</label>
+        <select id="icon-set-select" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="spring">Mùa xuân</option>
+            <option value="summer">Mùa hè</option>
+            <option value="christmas">Giáng sinh</option>
+            <option value="tet">Tết Nguyên Đán</option>
+        </select>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 admin-controls">
+        <div class="flex-1">
+            <label for="icon-color-picker" class="block font-semibold mb-2">Màu biểu tượng</label>
+            <input type="color" id="icon-color-picker" value="#2e8b57" class="w-full h-10 rounded-md border-none cursor-pointer">
+        </div>
+        <div class="flex-1">
+            <label for="icon-quantity-input" class="block font-semibold mb-2">Số lượng biểu tượng</label>
+            <input type="number" id="icon-quantity-input" value="20" min="0" max="100" class="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // === Khai báo biến và elements ===
+        const pageContents = document.querySelectorAll('.page-content-wrapper');
+        const navIcons = document.querySelectorAll('.page-nav-icons .nav-icon');
+        const backBtns = document.querySelectorAll('[id^="back-btn-"]');
+        const navTrackingIcon = document.getElementById('nav-tracking-icon');
+        
+        const bannerUploadInput = document.getElementById('banner-upload-input');
+        const bannerContent = document.getElementById('banner-content');
+        
+        const carousel = document.getElementById('carousel');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        
+        const galleryFileInputs = [
+            document.getElementById('file-upload-1'),
+            document.getElementById('file-upload-2'),
+            document.getElementById('file-upload-3'),
+            document.getElementById('file-upload-4')
+        ];
+        const galleryContentContainers = [
+            document.getElementById('content1'),
+            document.getElementById('content2'),
+            document.getElementById('content3'),
+            document.getElementById('content4')
+        ];
+        const toggleButtons = document.querySelectorAll('.toggle-btn');
+        
+        const phoneModal = document.getElementById('phoneModal');
+        const callMainBtn = document.getElementById('call-main');
+        const callCoopBtn = document.getElementById('call-coop');
+
+        const trackingInput = document.getElementById('tracking-input');
+        const trackBtn = document.getElementById('track-btn');
+        const trackingResult = document.getElementById('tracking-result');
+        const trackingFileUpload = document.getElementById('tracking-file-upload');
+        const trackingFileContent = document.getElementById('tracking-file-content');
+        const trackingStepElements = document.querySelectorAll('#tracking-journey > div');
+        const trackingControls = document.getElementById('tracking-controls');
+        if (trackingControls) trackingControls.classList.remove('hidden');
+
+        const page3FileInputs = [
+            document.getElementById('file-upload-page3-1'),
+            document.getElementById('file-upload-page3-2')
+        ];
+        const page3ContentContainers = [
+            document.getElementById('content-page3-1'),
+            document.getElementById('content-page3-2')
+        ];
+
+        const aiInput = document.getElementById('ai-input');
+        const askBtn = document.getElementById('ask-btn');
+        const subjectBtn = document.getElementById('subject-btn');
+        const aiResponse = document.getElementById('ai-response');
+        
+        const getCustomerDataBtn = document.getElementById('get-customer-data-btn');
+        const customerDataDisplay = document.getElementById('customer-data-display');
+
+        const bgColorPicker = document.getElementById('bg-color-picker');
+        const textColorPicker = document.getElementById('text-color-picker');
+        const iconColorPicker = document.getElementById('icon-color-picker');
+        const iconQuantityInput = document.getElementById('icon-quantity-input');
+        const iconSetSelect = document.getElementById('icon-set-select');
+        const springThemeBtn = document.getElementById('spring-theme-btn');
+        const summerThemeBtn = document.getElementById('summer-theme-btn');
+        const christmasThemeBtn = document.getElementById('christmas-theme-btn');
+        const tetThemeBtn = document.getElementById('tet-theme-btn');
+        const floatingIconsContainer = document.getElementById('floating-icons');
+
+        const GOOGLE_SHEET_URLS = [
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=kho_tq&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=xep_xe&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=thong_quan&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=kho_hanoi&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=vc_hanoi_saigon&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=kho_saigon&tqx=out:json',
+            'https://docs.google.com/sheets/d/1B_8i83k9c1K2b-pA2f2d-j9f5z3v8n4o9qf9u9z9b9x/gviz/tq?sheet=dang_giao&tqx=out:json'
+        ];
+        
+        const themes = {
+            spring: { bgColor: '#e6f7e6', textColor: '#113311', primaryColor: '#2e8b57', icons: ['fas fa-leaf', 'fas fa-seedling', 'fas fa-tree'], iconColor: '#2e8b57', iconQuantity: 25 },
+            summer: { bgColor: '#fffbe6', textColor: '#8b4513', primaryColor: '#f4a460', icons: ['fas fa-sun', 'fas fa-beach', 'fas fa-ice-cream'], iconColor: '#f4a460', iconQuantity: 30 },
+            christmas: { bgColor: '#fff0f0', textColor: '#800000', primaryColor: '#b22222', icons: ['fas fa-snowflake', 'fas fa-holly-berry', 'fas fa-star'], iconColor: '#b22222', iconQuantity: 40 },
+            tet: { bgColor: '#fef3f2', textColor: '#b91c1c', primaryColor: '#d69e2e', icons: ['fas fa-firecracker', 'fas fa-dragon', 'fas fa-envelope-open-text'], iconColor: '#d69e2e', iconQuantity: 35 }
+        };
+        let currentIconSet = 'spring';
+
+        // === Khởi tạo Firebase ===
+        let db, auth;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const adminContentRef = () => doc(db, 'site_content', appId);
+        const adminUserRef = (email) => doc(db, 'admins', email);
+        const customersCollectionRef = () => collection(db, 'customers');
+
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } else {
+            console.error("Firebase config is not defined. Features requiring persistence will not work.");
+        }
+
+        // === Xử lý Đăng nhập & Quyền Admin ===
+        const loginBtn = document.getElementById('login-btn');
+        const loginModal = document.getElementById('login-modal');
+        const closeLoginModalBtn = document.getElementById('close-login-modal');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const signInBtn = document.getElementById('sign-in-btn');
+        const authErrorMessage = document.getElementById('auth-error-message');
+        const adminControls = document.querySelectorAll('.admin-controls');
+        const authStatus = document.getElementById('auth-status');
+
+        if (loginBtn) {
+            loginBtn.addEventListener('click', () => {
+                loginModal.style.display = 'flex';
+            });
+        }
+
+        if (closeLoginModalBtn) {
+            closeLoginModalBtn.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+            });
+        }
+
+        if (signInBtn) {
+            signInBtn.addEventListener('click', async () => {
+                authErrorMessage.textContent = '';
+                try {
+                    const userDoc = await getDoc(adminUserRef(emailInput.value));
+                    if (userDoc.exists() && userDoc.data().password === passwordInput.value) {
+                         await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+                    } else {
+                        throw new Error("Thông tin đăng nhập không hợp lệ.");
+                    }
+                } catch (error) {
+                    authErrorMessage.textContent = `Lỗi: ${error.message}`;
+                }
+            });
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(adminUserRef(user.email));
+                if (userDoc.exists()) {
+                    adminControls.forEach(el => el.style.display = 'block');
+                    authStatus.innerHTML = `<button id="logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-red-600 transition-colors">Đăng xuất</button>`;
+                    if(document.getElementById('logout-btn')) {
+                        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+                    }
+                    loginModal.style.display = 'none';
+                    await loadData();
+                } else {
+                    adminControls.forEach(el => el.style.display = 'none');
+                    authStatus.innerHTML = `<button id="login-btn" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Đăng nhập</button>`;
+                    if(document.getElementById('login-btn')) {
+                        document.getElementById('login-btn').addEventListener('click', () => loginModal.style.display = 'flex');
+                    }
+                    await loadData();
+                }
+            } else {
+                adminControls.forEach(el => el.style.display = 'none');
+                authStatus.innerHTML = `<button id="login-btn" class="bg-blue-500 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-600 transition-colors">Đăng nhập</button>`;
+                if(document.getElementById('login-btn')) {
+                    document.getElementById('login-btn').addEventListener('click', () => loginModal.style.display = 'flex');
+                }
+                await loadData(); // Load data for public view
+            }
+        });
+
+        if (getCustomerDataBtn) {
+            getCustomerDataBtn.addEventListener('click', async () => {
+                if (!auth.currentUser) {
+                    customerDataDisplay.textContent = 'Vui lòng đăng nhập Admin để xem dữ liệu.';
+                    return;
+                }
+                customerDataDisplay.textContent = 'Đang tải dữ liệu...';
+                try {
+                    const customersSnap = await getDocs(customersCollectionRef());
+                    let data = 'Email,Số điện thoại\n';
+                    customersSnap.forEach(doc => {
+                        const customer = doc.data();
+                        data += `${customer.email || ''},${customer.phoneNumber || ''}\n`;
+                    });
+                    customerDataDisplay.textContent = data;
+                } catch (e) {
+                    customerDataDisplay.textContent = `Lỗi khi lấy dữ liệu: ${e.message}`;
+                    console.error("Lỗi khi lấy dữ liệu khách hàng:", e);
+                }
+            });
+        }
+
+        // === Chức năng lưu và tải dữ liệu ===
+        async function saveData() {
+            if (!auth.currentUser || !(await getDoc(adminUserRef(auth.currentUser.email))).exists()) return;
+            const data = {
+                banner: { type: bannerContent.dataset.fileType, url: bannerContent.dataset.fileUrl },
+                carousel: Array.from(carousel.children).map(item => ({
+                    type: item.dataset.fileType,
+                    url: item.dataset.fileUrl
+                })),
+                gallery: galleryContentContainers.map(container => ({
+                    type: container.dataset.fileType,
+                    url: container.dataset.fileUrl,
+                    hidden: container.classList.contains('hidden')
+                })),
+                page3Content1: { type: page3ContentContainers[0].dataset.fileType, url: page3ContentContainers[0].dataset.fileUrl },
+                page3Content2: { type: page3ContentContainers[1].dataset.fileType, url: page3ContentContainers[1].dataset.fileUrl },
+                page3Text: document.getElementById('custom-text-area-page3').innerHTML,
+                trackingFile: { type: trackingFileContent.dataset.fileType, url: trackingFileContent.dataset.fileUrl },
+                theme: {
+                    bgColor: document.documentElement.style.getPropertyValue('--bg-color'),
+                    textColor: document.documentElement.style.getPropertyValue('--text-color')
+                },
+                iconSettings: {
+                    set: iconSetSelect.value,
+                    color: iconColorPicker.value,
+                    quantity: iconQuantityInput.value
+                }
+            };
+            try {
+                await setDoc(adminContentRef(), data);
+            } catch (e) {
+                console.error("Lỗi khi lưu dữ liệu:", e);
+            }
+        }
+
+        async function loadData() {
+            try {
+                const docSnap = await getDoc(adminContentRef());
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    // Load Banner
+                    if (data.banner && data.banner.url) {
+                        handleFileUploadFromURL(data.banner.url, bannerContent, data.banner.type);
+                    }
+                    // Load Carousel
+                    if (data.carousel) {
+                        carousel.innerHTML = '';
+                        data.carousel.forEach(item => {
+                            if (item.url) {
+                                const el = createContentElement(item.url, item.type);
+                                carousel.appendChild(el);
+                            }
+                        });
+                        carouselItems = carousel.children;
+                        updateCarousel();
+                    }
+                    // Load Gallery
+                    if (data.gallery) {
+                        data.gallery.forEach((item, index) => {
+                            // Sửa lỗi: Thêm kiểm tra null trước khi truy cập classList
+                            if (item.url && galleryContentContainers[index] && toggleButtons[index]) {
+                                handleFileUploadFromURL(item.url, galleryContentContainers[index], item.type);
+                                if (item.hidden) {
+                                    galleryContentContainers[index].classList.add('hidden');
+                                    toggleButtons[index].textContent = 'Hiện';
+                                } else {
+                                    galleryContentContainers[index].classList.remove('hidden');
+                                    toggleButtons[index].textContent = 'Ẩn';
+                                }
+                            }
+                        });
+                    }
+                    // Load Page 3
+                    if (data.page3Content1 && data.page3Content1.url && page3ContentContainers[0]) {
+                        handleFileUploadFromURL(data.page3Content1.url, page3ContentContainers[0], data.page3Content1.type);
+                    }
+                    if (data.page3Content2 && data.page3Content2.url && page3ContentContainers[1]) {
+                        handleFileUploadFromURL(data.page3Content2.url, page3ContentContainers[1], data.page3Content2.type);
+                    }
+                    if (data.page3Text && document.getElementById('custom-text-area-page3')) {
+                        document.getElementById('custom-text-area-page3').innerHTML = data.page3Text;
+                    }
+                    // Load Tracking File
+                    if (data.trackingFile && data.trackingFile.url && trackingFileContent) {
+                         handleFileUploadFromURL(data.trackingFile.url, trackingFileContent, data.trackingFile.type);
+                    }
+                    // Load Theme
+                    if (data.theme) {
+                        document.documentElement.style.setProperty('--bg-color', data.theme.bgColor);
+                        document.documentElement.style.setProperty('--text-color', data.theme.textColor);
+                    }
+                    // Load Icon Settings
+                    if (data.iconSettings) {
+                        iconSetSelect.value = data.iconSettings.set;
+                        iconColorPicker.value = data.iconSettings.color;
+                        iconQuantityInput.value = data.iconSettings.quantity;
+                        applyTheme(themes[data.iconSettings.set]);
+                    }
+                }
+            } catch (e) {
+                console.error("Lỗi khi tải dữ liệu:", e);
+            }
+        }
+        
+        function handleFileUpload(event, container) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                handleFileUploadFromURL(url, container, file.type);
+                saveData();
+            }
+        }
+
+        function handleFileUploadFromURL(url, container, type) {
+            if (!container) return; // Bảo vệ khỏi lỗi null
+            container.innerHTML = '';
+            container.dataset.fileUrl = url;
+            container.dataset.fileType = type;
+
+            if (type.startsWith('image/')) {
+                container.innerHTML = `<img src="${url}" alt="Uploaded image" class="w-full h-auto object-contain">`;
+            } else if (type === 'application/pdf') {
+                container.innerHTML = `<embed src="${url}" type="application/pdf" class="w-full h-full" />`;
+            } else {
+                container.innerHTML = `<span class="text-gray-500">Tệp không được hỗ trợ</span>`;
+            }
+        }
+        
+        function createContentElement(url, type) {
+            const el = document.createElement('div');
+            el.className = 'carousel-item p-4';
+            el.dataset.fileUrl = url;
+            el.dataset.fileType = type;
+            if (type.startsWith('image/')) {
+                el.innerHTML = `<img src="${url}" alt="Uploaded image" class="rounded-lg shadow-md">`;
+            } else if (type === 'application/pdf') {
+                el.innerHTML = `<embed src="${url}" type="application/pdf" class="rounded-lg shadow-md w-full h-full" />`;
+            }
+            return el;
+        }
+
+        // === Xử lý Carousel ===
+        let currentIndex = 0;
+        let carouselItems = carousel.children;
+
+        function updateCarousel() {
+            if (carouselItems.length === 0 || !carousel) return;
+            const itemWidth = carouselItems[0].offsetWidth;
+            carousel.style.transform = `translateX(-${currentIndex * itemWidth}px)`;
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselItems.length - 1;
+                updateCarousel();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex < carouselItems.length - 1) ? currentIndex + 1 : 0;
+                updateCarousel();
+            });
+        }
+
+        window.addEventListener('resize', updateCarousel);
+        
+        // === Xử lý các nút và sự kiện ===
+        if (navIcons) {
+            navIcons.forEach(icon => {
+                icon.addEventListener('click', (e) => showPage(`${e.currentTarget.dataset.page}-content`));
+            });
+        }
+
+        if (backBtns) {
+            backBtns.forEach(btn => {
+                btn.addEventListener('click', () => showPage('page1-content'));
+            });
+        }
+
+        if (navTrackingIcon) {
+            navTrackingIcon.addEventListener('click', () => showPage('page2-content'));
+        }
+
+        if (bannerUploadInput) {
+            bannerUploadInput.addEventListener('change', (e) => handleFileUpload(e, bannerContent));
+        }
+
+        if (trackingFileUpload) {
+            trackingFileUpload.addEventListener('change', (e) => handleFileUpload(e, trackingFileContent));
+        }
+
+        page3FileInputs.forEach((input, index) => {
+            if (input) {
+                input.addEventListener('change', (e) => handleFileUpload(e, page3ContentContainers[index]));
+            }
+        });
+        
+        galleryFileInputs.forEach((input, index) => {
+            if (input) {
+                input.addEventListener('change', (e) => handleFileUpload(e, galleryContentContainers[index]));
+            }
+        });
+
+        if (toggleButtons) {
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetContent = document.getElementById(button.dataset.target);
+                    if (targetContent) {
+                        targetContent.classList.toggle('hidden');
+                        button.textContent = targetContent.classList.contains('hidden') ? 'Hiện' : 'Ẩn';
+                        saveData();
+                    }
+                });
+            });
+        }
+
+        if (callMainBtn) {
+            callMainBtn.addEventListener('click', (e) => { e.preventDefault(); phoneModal.style.display = 'flex'; });
+        }
+        if (callCoopBtn) {
+            callCoopBtn.addEventListener('click', (e) => { e.preventDefault(); phoneModal.style.display = 'flex'; });
+        }
+        if (phoneModal) {
+            phoneModal.addEventListener('click', (e) => { if (e.target === phoneModal) phoneModal.style.display = 'none'; });
+        }
+        
+        // Add listeners to save data on content changes
+        const contenteditableDiv = document.getElementById('custom-text-area-page3');
+        if (contenteditableDiv) {
+            contenteditableDiv.addEventListener('input', saveData);
+        }
+        if (iconColorPicker) {
+            iconColorPicker.addEventListener('input', saveData);
+        }
+        if (iconQuantityInput) {
+            iconQuantityInput.addEventListener('input', saveData);
+        }
+        if (iconSetSelect) {
+            iconSetSelect.addEventListener('change', saveData);
+        }
+
+        // === Xử lý Gemini AI ===
+        const apiKey = ""; // Canvas will automatically provide it
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+        async function generateContent(systemPrompt, userQuery) {
+            if (aiResponse) {
+                aiResponse.innerHTML = `<div class="text-left text-gray-400 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Đang xử lý...</div>`;
+                aiResponse.style.whiteSpace = 'pre-wrap';
+            }
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Không thể tạo câu trả lời. Vui lòng thử lại.";
+                if (aiResponse) {
+                    aiResponse.innerHTML = text;
+                }
+            } catch (error) {
+                if (aiResponse) {
+                    aiResponse.innerHTML = `<div class="text-left text-red-500">Đã xảy ra lỗi: ${error.message}. Vui lòng thử lại.</div>`;
+                }
+            }
+        }
+
+        if (askBtn) {
+            askBtn.addEventListener('click', () => {
+                const query = aiInput.value.trim();
+                if (query) {
+                    const systemPrompt = "Bạn là một chuyên gia logistics. Hãy cung cấp câu trả lời rõ ràng và ngắn gọn về các dịch vụ vận chuyển, thủ tục hải quan và logistics. Trả lời bằng tiếng Việt.";
+                    generateContent(systemPrompt, query);
+                } else if (aiResponse) {
+                    aiResponse.innerHTML = `<div class="text-left text-red-500">Vui lòng nhập câu hỏi của bạn.</div>`;
+                }
+            });
+        }
+
+        if (subjectBtn) {
+            subjectBtn.addEventListener('click', () => {
+                const query = aiInput.value.trim();
+                if (query) {
+                    const systemPrompt = "Dựa trên mô tả sau, hãy tạo một dòng tiêu đề email ngắn gọn, chuyên nghiệp và hiệu quả trong lĩnh vực logistics. Chỉ trả lại tiêu đề, không thêm lời giải thích nào khác. Trả lời bằng tiếng Việt.";
+                    generateContent(systemPrompt, query);
+                } else if (aiResponse) {
+                    aiResponse.innerHTML = `<div class="text-left text-red-500">Vui lòng nhập mô tả yêu cầu của bạn để tạo tiêu đề email.</div>`;
+                }
+            });
+        }
+
+        // === Xử lý theo dõi đơn hàng ===
+        async function trackOrder() {
+            const trackingNumber = trackingInput.value.trim();
+            if (!trackingNumber) {
+                trackingResult.innerHTML = `<p class="text-left text-red-500">Vui lòng nhập mã vận đơn.</p>`;
+                return;
+            }
+
+            if (trackingResult) {
+                trackingResult.innerHTML = `<div class="text-left text-gray-400 animate-pulse"><i class="fas fa-spinner fa-spin mr-2"></i>Đang tìm kiếm...</div>`;
+            }
+            trackingStepElements.forEach(el => {
+                const icon = el.querySelector('i');
+                icon.className = 'fas fa-circle-notch text-xl';
+                el.classList.remove('text-green-500');
+                el.classList.add('text-gray-500');
+                const dateEl = el.querySelector('span:last-child');
+                if (dateEl) dateEl.textContent = '';
+            });
+
+            let foundStatus = false;
+            let currentStepIndex = -1;
+
+            for (let i = 0; i < GOOGLE_SHEET_URLS.length; i++) {
+                try {
+                    const response = await fetch(GOOGLE_SHEET_URLS[i]);
+                    const text = await response.text();
+                    const dataText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                    const data = JSON.parse(dataText);
+                    const rows = data.table.rows;
+                    
+                    const foundOrder = rows.find(row => row.c[0] && row.c[0].v === trackingNumber);
+
+                    if (foundOrder) {
+                        foundStatus = true;
+                        currentStepIndex = i;
+                        const updateDate = foundOrder.c[1] ? foundOrder.c[1].v : 'Không có thông tin';
+                        
+                        const stepEl = trackingStepElements[i];
+                        if (stepEl) {
+                            stepEl.querySelector('i').className = 'fas fa-check-circle text-xl';
+                            stepEl.classList.remove('text-gray-500');
+                            stepEl.classList.add('text-green-500');
+                            const dateEl = stepEl.querySelector('span:last-child');
+                            if (dateEl) dateEl.textContent = `(${updateDate})`;
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Lỗi khi tìm kiếm ở bước ${i + 1}:`, error);
+                }
+            }
+
+            if (foundStatus) {
+                trackingResult.innerHTML = `<p class="text-left text-blue-600 font-semibold">Tìm thấy mã vận đơn! Đã cập nhật hành trình.</p>`;
+            } else {
+                trackingResult.innerHTML = `<p class="text-left text-red-500">Không tìm thấy mã vận đơn này. Vui lòng kiểm tra lại.</p>`;
+            }
+        }
+        
+        if (trackBtn) {
+            trackBtn.addEventListener('click', trackOrder);
+        }
+        
+        // === Xử lý tùy chỉnh màu sắc & hiệu ứng ===
+        function applyTheme(theme) {
+            document.documentElement.style.setProperty('--bg-color', theme.bgColor);
+            document.documentElement.style.setProperty('--text-color', theme.textColor);
+            document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
+            if (iconColorPicker) {
+                iconColorPicker.value = theme.iconColor;
+            }
+            if (iconQuantityInput) {
+                iconQuantityInput.value = theme.iconQuantity;
+            }
+            if (iconSetSelect) {
+                iconSetSelect.value = Object.keys(themes).find(key => themes[key] === theme);
+            }
+            createFloatingIcons(theme.icons, theme.iconColor, theme.iconQuantity);
+        }
+
+        function createFloatingIcons(iconClasses, iconColor, iconQuantity) {
+            if (floatingIconsContainer) {
+                floatingIconsContainer.innerHTML = '';
+                for (let i = 0; i < iconQuantity; i++) {
+                    const icon = document.createElement('i');
+                    const randomIconClass = iconClasses[Math.floor(Math.random() * iconClasses.length)];
+                    icon.className = `floating-icon ${randomIconClass}`;
+                    
+                    const size = Math.random() * 2 + 1;
+                    const top = Math.random() * 100;
+                    const left = Math.random() * 100;
+                    const delay = Math.random() * 5;
+                    const duration = Math.random() * 20 + 10;
+                    const endX = Math.random() * 200 - 100;
+                    const endY = Math.random() * 200 - 100;
+
+                    icon.style.fontSize = `${size}rem`;
+                    icon.style.top = `${top}vh`;
+                    icon.style.left = `${left}vw`;
+                    icon.style.animationDelay = `${delay}s`;
+                    icon.style.animationDuration = `${duration}s`;
+                    icon.style.setProperty('--x', `${endX}px`);
+                    icon.style.setProperty('--y', `${endY}px`);
+                    icon.style.color = iconColor;
+
+                    floatingIconsContainer.appendChild(icon);
+                }
+            }
+        }
+
+        if (bgColorPicker) {
+            bgColorPicker.addEventListener('input', (event) => document.documentElement.style.setProperty('--bg-color', event.target.value));
+        }
+        if (textColorPicker) {
+            textColorPicker.addEventListener('input', (event) => document.documentElement.style.setProperty('--text-color', event.target.value));
+        }
+        if (iconColorPicker) {
+            iconColorPicker.addEventListener('input', (event) => {
+                document.documentElement.style.setProperty('--icon-color', event.target.value);
+                createFloatingIcons(themes[currentIconSet].icons, event.target.value, iconQuantityInput.value);
+            });
+        }
+        if (iconQuantityInput) {
+            iconQuantityInput.addEventListener('input', (event) => createFloatingIcons(themes[currentIconSet].icons, iconColorPicker.value, event.target.value));
+        }
+        if (iconSetSelect) {
+            iconSetSelect.addEventListener('change', (event) => {
+                currentIconSet = event.target.value;
+                createFloatingIcons(themes[currentIconSet].icons, iconColorPicker.value, iconQuantityInput.value);
+            });
+        }
+        
+        applyTheme(themes.spring);
+        updateCarousel();
+    });
+</script>
+</body>
+</html>
